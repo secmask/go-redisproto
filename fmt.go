@@ -11,7 +11,7 @@ var (
 func intToString(val int64) string{
 	return strconv.FormatInt(val,10)
 }
-func SendError(msg string,w *bufio.Writer) error{
+func SendError(w *bufio.Writer,msg string) error{
 	resp:="-"+msg+"\r\n"
 	_,e := w.Write([]byte(resp))
 	if e!=nil{
@@ -20,7 +20,7 @@ func SendError(msg string,w *bufio.Writer) error{
 	return w.Flush()
 }
 
-func SendString(msg string,w *bufio.Writer) error{
+func SendString(w *bufio.Writer,msg string) error{
 	resp:="+"+msg+"\r\n"
 	_,e := w.Write([]byte(resp))
 	if e!=nil{
@@ -29,7 +29,7 @@ func SendString(msg string,w *bufio.Writer) error{
 	return w.Flush()
 }
 
-func SendInt(val int64,w *bufio.Writer) error{
+func SendInt(w *bufio.Writer,val int64) error{
 	resp:=":"+intToString(val)+"\r\n"
 	_,e := w.Write([]byte(resp))
 	if e!=nil{
@@ -37,13 +37,13 @@ func SendInt(val int64,w *bufio.Writer) error{
 	}
 	return w.Flush()
 }
-func SendBulk(val []byte,w *bufio.Writer) error{
-	if e:=sendBulk(val,w); e!=nil{
+func SendBulk(w *bufio.Writer,val []byte) error{
+	if e:=sendBulk(w,val); e!=nil{
 		return e
 	}
 	return w.Flush()
 }
-func sendBulk(val []byte,w *bufio.Writer) error{
+func sendBulk(w *bufio.Writer,val []byte) error{
 	if val==nil{
 		_,e := w.Write(nilBulk)
 		if e!=nil{
@@ -66,13 +66,13 @@ func sendBulk(val []byte,w *bufio.Writer) error{
 	}
 	return nil
 }
-func SendBulks(vals [][]byte,w *bufio.Writer) error{
-	if e:=sendBulks(vals,w); e!=nil{
+func SendBulks(w *bufio.Writer,vals [][]byte) error{
+	if e:=sendBulks(w,vals); e!=nil{
 		return e
 	}
 	return w.Flush()
 }
-func sendBulks(vals [][]byte,w *bufio.Writer) error{
+func sendBulks(w *bufio.Writer,vals [][]byte) error{
 	pre:="*"+intToString(int64(len(vals)))+"\r\n"
 	var e error
 	_,e = w.Write([]byte(pre))
@@ -81,19 +81,19 @@ func sendBulks(vals [][]byte,w *bufio.Writer) error{
 	}
 	numArg:=len(vals)
 	for i:=0;i<numArg;i++{
-		if e = SendBulk(vals[i],w); e!=nil{
+		if e = SendBulk(w,vals[i]); e!=nil{
 			return e
 		}
 	}
 	return nil
 }
-func SendBulkString(str string,w *bufio.Writer) error{
-	return SendBulk([]byte(str),w)
+func SendBulkString(w *bufio.Writer,str string) error{
+	return SendBulk(w,[]byte(str))
 }
-func SendBulkStrings(strs []string,w *bufio.Writer) error{
+func SendBulkStrings(w *bufio.Writer,strs []string) error{
 	t:=make([][]byte,0,len(strs))
 	for i:=0;i<len(strs);i++{
 		t = append(t,[]byte(strs[i]))
 	}
-	return SendBulks(t,w)
+	return SendBulks(w,t)
 }

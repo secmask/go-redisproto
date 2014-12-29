@@ -53,7 +53,7 @@ func handleConnection(conn net.Conn){
 		if err!=nil{
 			_,ok:= err.(*redisproto.ProtocolError)
 			if ok{
-				ew = redisproto.SendError(err.Error(),w)
+				ew = redisproto.SendError(w,err.Error())
 			}else{
 				log.Println(err, " closed connection to ",conn.RemoteAddr())
 				break
@@ -64,15 +64,15 @@ func handleConnection(conn net.Conn){
 				case "LPUSH":
 					qn:=string(command.Get(1))
 					execLPush(qn,command.Get(2))
-					ew = redisproto.SendInt(1,w)
+					ew = redisproto.SendInt(w,1)
 					break
 				case "RPOP":
 					qn:=string(command.Get(1))
 					data := execRpop(qn)
-					ew = redisproto.SendBulk(data,w)
+					ew = redisproto.SendBulk(w,data)
 					break
 				default:
-					ew = redisproto.SendError("Command not support",w)	
+					ew = redisproto.SendError(w,"Command not support")	
 			}
 		}
 		if ew!=nil{
