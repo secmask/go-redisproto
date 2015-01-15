@@ -9,8 +9,9 @@ var (
 	ExpectNumber = &ProtocolError{"Expect Number"}
 	ExpectNewLine = &ProtocolError{"Expect Newline"}
 	ExpectTypeChar = &ProtocolError{"Expect TypeChar"}
-	TooManyArg = errors.New("TooManyArg")
-	BulkTooLarge = errors.New("BulkTooLarge")
+	
+	InvalidNumArg = errors.New("TooManyArg")
+	InvalidBulkSize = errors.New("Invalid bulk size")
 	LineTooLong = errors.New("LineTooLong")
 	
 	ReadBufferInitSize = 1 << 10
@@ -18,6 +19,7 @@ var (
 	MaxBulkSize = 1 << 16
 	MaxTelnetLine = 1 << 10
 	spaceSlice = []byte{' '}
+	emptyBulk = [0]byte{}
 )
 const (
 	
@@ -150,8 +152,13 @@ func (r *RedisParser) parseBinary() (*Command,error){
 	if e = r.discardNewLine();e!=nil{
 		return nil,e
 	}
-	if numArg > MaxNumArg{
-		return nil,TooManyArg
+	switch {
+		case numArg==-1:
+			return nil,r.discardNewLine() // null array
+		case numArg < -1:
+			return nil, InvalidNumArg
+		case numArg > MaxNumArg:
+			return nil,InvalidNumArg
 	}
 	argv := make([][]byte,0,numArg)
 	for i:=0;i<numArg;i++{
@@ -169,14 +176,20 @@ func (r *RedisParser) parseBinary() (*Command,error){
 		if e = r.discardNewLine();e!=nil{
 			return nil,e
 		}
-		if plen > MaxBulkSize{
-			return nil,BulkTooLarge
+		switch {
+			case plen == -1:
+				argv = append(argv,nil) // null bulk
+			case plen == 0:
+				argv = append(argv,emptyBulk[:]) // empty bulk
+			case plen > 0 && plen <= MaxBulkSize:
+				if e = r.requireNBytes(plen);e!=nil{
+					return nil,e
+				}
+				argv = append(argv,r.buffer[r.parsePosition:(r.parsePosition+plen)])
+				r.parsePosition+=plen
+			default:
+				return nil,InvalidBulkSize
 		}
-		if e = r.requireNBytes(plen);e!=nil{
-			return nil,e
-		}
-		argv = append(argv,r.buffer[r.parsePosition:(r.parsePosition+plen)])
-		r.parsePosition+=plen
 		if e = r.discardNewLine();e!=nil{
 			return nil,e
 		}
