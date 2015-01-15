@@ -7,6 +7,7 @@ import (
 var (
 	newLine = []byte{'\r','\n'}
 	nilBulk = []byte{'$','-','1','\r','\n'}
+	nilArray = []byte{'*','-','1','\r','\n'}
 )
 func intToString(val int64) string{
 	return strconv.FormatInt(val,10)
@@ -73,8 +74,13 @@ func SendBulks(w *bufio.Writer,vals [][]byte) error{
 	return w.Flush()
 }
 func sendBulks(w *bufio.Writer,vals [][]byte) error{
-	pre:="*"+intToString(int64(len(vals)))+"\r\n"
 	var e error
+	if vals == nil{
+		_,e = w.Write(nilArray)
+		e = w.Flush()
+		return e
+	}
+	pre:="*"+intToString(int64(len(vals)))+"\r\n"
 	_,e = w.Write([]byte(pre))
 	if e!=nil{
 		return e
@@ -85,12 +91,16 @@ func sendBulks(w *bufio.Writer,vals [][]byte) error{
 			return e
 		}
 	}
-	return nil
+	e = w.Flush()
+	return e
 }
 func SendBulkString(w *bufio.Writer,str string) error{
 	return SendBulk(w,[]byte(str))
 }
 func SendBulkStrings(w *bufio.Writer,strs []string) error{
+	if strs == nil{
+		return SendBulks(w,nil)
+	}
 	t:=make([][]byte,0,len(strs))
 	for i:=0;i<len(strs);i++{
 		t = append(t,[]byte(strs[i]))

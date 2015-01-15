@@ -87,6 +87,10 @@ func (r *RedisParser) requireNBytes(num int) (error){
 }
 func (r *RedisParser) readNumber() (int,error){
 	var neg bool = false
+	err := r.requireNBytes(1)
+	if err!=nil{
+		return 0,err
+	}
 	switch r.buffer[r.parsePosition]{
 		case '-':
 			neg = true
