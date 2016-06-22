@@ -76,7 +76,7 @@ func (w *Writer) WriteError(s string) error {
 	return err
 }
 
-func (w *Writer) WriteObjects(objs []interface{}) error {
+func (w *Writer) WriteObjects(objs ...interface{}) error {
 	if objs == nil {
 		_, err := w.Write(nilArray)
 		return err
@@ -114,6 +114,25 @@ func (w *Writer) WriteObjects(objs []interface{}) error {
 			}
 		default:
 			return fmt.Errorf("Value not suppport %v", v)
+		}
+	}
+	return nil
+}
+
+func (w *Writer) WriteBulks(bulks ...[]byte) error {
+	if bulks == nil {
+		_, err := w.Write(nilArray)
+		return err
+	}
+
+	w.Write(star)
+	w.Write([]byte(intToString(int64(len(bulks)))))
+	w.Write(newLine)
+
+	numArg := len(bulks)
+	for i := 0; i < numArg; i++ {
+		if err := w.WriteBulk(bulks[i]); err != nil {
+			return err
 		}
 	}
 	return nil
