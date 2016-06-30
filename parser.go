@@ -23,8 +23,6 @@ var (
 	emptyBulk          = [0]byte{}
 )
 
-const ()
-
 type ProtocolError struct {
 	message string
 }
@@ -241,4 +239,16 @@ func (r *Parser) ReadCommand() (*Command, error) {
 	}
 	r.reset()
 	return cmd, err
+}
+
+func (r *Parser) Commands() <-chan *Command {
+	cmds := make(chan *Command)
+	go func() {
+		for cmd, err := r.ReadCommand(); err == nil; cmd, err = r.ReadCommand() {
+			cmds <- cmd
+		}
+		close(cmds)
+
+	}()
+	return cmds
 }
