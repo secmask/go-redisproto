@@ -126,12 +126,31 @@ func (w *Writer) WriteBulks(bulks ...[]byte) error {
 	}
 
 	w.Write(star)
-	w.Write([]byte(intToString(int64(len(bulks)))))
+	numElement := len(bulks)
+	w.Write([]byte(intToString(int64(numElement))))
 	w.Write(newLine)
 
-	numArg := len(bulks)
-	for i := 0; i < numArg; i++ {
+	for i := 0; i < numElement; i++ {
 		if err := w.WriteBulk(bulks[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (w *Writer) WriteBulkStrings(bulks []string) error {
+	if bulks == nil {
+		_, err := w.Write(nilArray)
+		return err
+	}
+
+	w.Write(star)
+	numElement := len(bulks)
+	w.Write([]byte(intToString(int64(numElement))))
+	w.Write(newLine)
+
+	for i := 0; i < numElement; i++ {
+		if err := w.WriteBulkString(bulks[i]); err != nil {
 			return err
 		}
 	}
