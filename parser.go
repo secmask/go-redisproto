@@ -15,7 +15,7 @@ var (
 	InvalidBulkSize = errors.New("Invalid bulk size")
 	LineTooLong     = errors.New("LineTooLong")
 
-	ReadBufferInitSize = 1 << 10
+	ReadBufferInitSize = 1 << 16
 	MaxNumArg          = 20
 	MaxBulkSize        = 1 << 16
 	MaxTelnetLine      = 1 << 10
@@ -148,6 +148,7 @@ func (r *Parser) discardNewLine() error {
 	}
 	return ExpectNewLine
 }
+
 func (r *Parser) parseBinary() (*Command, error) {
 	r.parsePosition++
 	numArg, err := r.readNumber()
@@ -202,6 +203,7 @@ func (r *Parser) parseBinary() (*Command, error) {
 	}
 	return &Command{argv}, nil
 }
+
 func (r *Parser) parseTelnet() (*Command, error) {
 	nlPos := -1
 	for {
@@ -217,7 +219,7 @@ func (r *Parser) parseTelnet() (*Command, error) {
 			return nil, LineTooLong
 		}
 	}
-	r.reset()
+
 	return &Command{bytes.Split(r.buffer[:nlPos-1], spaceSlice)}, nil
 }
 
@@ -227,9 +229,13 @@ func (r *Parser) reset() {
 }
 
 func (r *Parser) ReadCommand() (*Command, error) {
-	if err := r.readSome(1); err != nil {
-		return nil, err
+	// if the buffer is empty, try to fetch some
+	if r.parsePosition >= r.writeIndex {
+		if err := r.readSome(1); err != nil {
+			return nil, err
+		}
 	}
+
 	var cmd *Command
 	var err error
 	if r.buffer[r.parsePosition] == '*' {
@@ -237,7 +243,9 @@ func (r *Parser) ReadCommand() (*Command, error) {
 	} else {
 		cmd, err = r.parseTelnet()
 	}
-	r.reset()
+	if r.parsePosition >= r.writeIndex {
+		r.reset()
+	}
 	return cmd, err
 }
 
