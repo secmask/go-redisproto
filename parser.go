@@ -33,6 +33,7 @@ func (p *ProtocolError) Error() string {
 
 type Command struct {
 	argv [][]byte
+	last bool
 }
 
 func (c *Command) Get(index int) []byte {
@@ -42,8 +43,13 @@ func (c *Command) Get(index int) []byte {
 		return nil
 	}
 }
+
 func (c *Command) ArgCount() int {
 	return len(c.argv)
+}
+
+func (c *Command) IsLast() bool {
+	return c.last
 }
 
 type Parser struct {
@@ -201,7 +207,7 @@ func (r *Parser) parseBinary() (*Command, error) {
 			return nil, e
 		}
 	}
-	return &Command{argv}, nil
+	return &Command{argv: argv}, nil
 }
 
 func (r *Parser) parseTelnet() (*Command, error) {
@@ -220,7 +226,7 @@ func (r *Parser) parseTelnet() (*Command, error) {
 		}
 	}
 
-	return &Command{bytes.Split(r.buffer[:nlPos-1], spaceSlice)}, nil
+	return &Command{argv: bytes.Split(r.buffer[:nlPos-1], spaceSlice)}, nil
 }
 
 func (r *Parser) reset() {
@@ -244,6 +250,7 @@ func (r *Parser) ReadCommand() (*Command, error) {
 		cmd, err = r.parseTelnet()
 	}
 	if r.parsePosition >= r.writeIndex {
+		cmd.last = true
 		r.reset()
 	}
 	return cmd, err
