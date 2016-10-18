@@ -225,7 +225,7 @@ func (r *Parser) parseTelnet() (*Command, error) {
 			return nil, LineTooLong
 		}
 	}
-
+	r.parsePosition = r.writeIndex // we don't support pipeline in telnet mode
 	return &Command{argv: bytes.Split(r.buffer[:nlPos-1], spaceSlice)}, nil
 }
 
