@@ -250,7 +250,9 @@ func (r *Parser) ReadCommand() (*Command, error) {
 		cmd, err = r.parseTelnet()
 	}
 	if r.parsePosition >= r.writeIndex {
-		cmd.last = true
+		if cmd != nil {
+			cmd.last = true
+		}
 		r.reset()
 	}
 	return cmd, err
