@@ -232,6 +232,7 @@ func (r *Parser) parseTelnet() (*Command, error) {
 func (r *Parser) reset() {
 	r.writeIndex = 0
 	r.parsePosition = 0
+	r.buffer = make([]byte, len(r.buffer))
 }
 
 func (r *Parser) ReadCommand() (*Command, error) {
@@ -259,7 +260,6 @@ func (r *Parser) ReadCommand() (*Command, error) {
 }
 
 func (r *Parser) Commands() <-chan *Command {
-	panic("deprecated, because race condition on access Command field")
 	cmds := make(chan *Command)
 	go func() {
 		for cmd, err := r.ReadCommand(); err == nil; cmd, err = r.ReadCommand() {
