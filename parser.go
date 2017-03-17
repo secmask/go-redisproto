@@ -184,7 +184,7 @@ func (r *Parser) parseBinary() (*Command, error) {
 	}
 	argv := make([][]byte, 0, numArg)
 	for i := 0; i < numArg; i++ {
-		if e := r.requireNBytes(1); e != nil {
+		if e = r.requireNBytes(1); e != nil {
 			return nil, e
 		}
 		if r.buffer[r.parsePosition] != '$' {

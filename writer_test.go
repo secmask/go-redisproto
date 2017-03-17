@@ -1,8 +1,8 @@
 package redisproto
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 )
 
 func TestWriter_Write(t *testing.T) {
