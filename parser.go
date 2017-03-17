@@ -32,8 +32,9 @@ func (p *ProtocolError) Error() string {
 }
 
 type Command struct {
-	argv [][]byte
-	last bool
+	argv   [][]byte
+	last   bool
+	buffer []byte
 }
 
 func (c *Command) Get(index int) []byte {
@@ -70,10 +71,10 @@ func NewParser(reader io.Reader) *Parser {
 	return &Parser{reader: reader, buffer: make([]byte, ReadBufferInitSize), bufferPool: make(chan []byte, 2)}
 }
 
-// Recycle receive application buffer for less work on GC
-func (r *Parser) Recycle(buff []byte) {
+// Recycle receive application Command back, which help for reuse command buffer, less work on GC
+func (r *Parser) Recycle(c *Command) {
 	select {
-	case r.bufferPool <- buff:
+	case r.bufferPool <- c.buffer:
 	default:
 	}
 }
@@ -267,6 +268,7 @@ func (r *Parser) ReadCommand() (*Command, error) {
 	if r.parsePosition >= r.writeIndex {
 		if cmd != nil {
 			cmd.last = true
+			cmd.buffer = r.buffer
 		}
 		r.reset()
 	}
