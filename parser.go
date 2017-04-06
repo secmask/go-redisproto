@@ -58,7 +58,6 @@ type Parser struct {
 	buffer        []byte
 	parsePosition int
 	writeIndex    int
-	bufferPool    chan []byte
 }
 
 func max(a, b int) int {
@@ -68,15 +67,7 @@ func max(a, b int) int {
 	return b
 }
 func NewParser(reader io.Reader) *Parser {
-	return &Parser{reader: reader, buffer: make([]byte, ReadBufferInitSize), bufferPool: make(chan []byte, 2)}
-}
-
-// Recycle receive application Command back, which help for reuse command buffer, less work on GC
-func (r *Parser) Recycle(c *Command) {
-	select {
-	case r.bufferPool <- c.buffer:
-	default:
-	}
+	return &Parser{reader: reader, buffer: make([]byte, ReadBufferInitSize)}
 }
 
 // ensure that we have enough space for writing 'req' byte
@@ -242,12 +233,7 @@ func (r *Parser) parseTelnet() (*Command, error) {
 func (r *Parser) reset() {
 	r.writeIndex = 0
 	r.parsePosition = 0
-	select {
-	case r.buffer = <-r.bufferPool:
-	default:
-		r.buffer = make([]byte, len(r.buffer))
-	}
-
+	//r.buffer = make([]byte, len(r.buffer))
 }
 
 func (r *Parser) ReadCommand() (*Command, error) {
