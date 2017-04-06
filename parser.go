@@ -32,9 +32,8 @@ func (p *ProtocolError) Error() string {
 }
 
 type Command struct {
-	argv   [][]byte
-	last   bool
-	buffer []byte
+	argv [][]byte
+	last bool
 }
 
 func (c *Command) Get(index int) []byte {
@@ -254,7 +253,6 @@ func (r *Parser) ReadCommand() (*Command, error) {
 	if r.parsePosition >= r.writeIndex {
 		if cmd != nil {
 			cmd.last = true
-			cmd.buffer = r.buffer
 		}
 		r.reset()
 	}
