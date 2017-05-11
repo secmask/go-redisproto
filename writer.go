@@ -100,6 +100,10 @@ func (w *Writer) WriteObjects(objs ...interface{}) error {
 			if err := w.WriteBulk(v); err != nil {
 				return err
 			}
+		case string:
+			if err := w.WriteBulkString(v); err != nil {
+				return err
+			}
 		case int:
 			if err := w.WriteInt(int64(v)); err != nil {
 				return err
