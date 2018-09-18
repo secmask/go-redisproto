@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	newLine  = []byte{'\r', '\n'}
-	nilBulk  = []byte{'$', '-', '1', '\r', '\n'}
-	nilArray = []byte{'*', '-', '1', '\r', '\n'}
+	newLine    = []byte{'\r', '\n'}
+	nilBulk    = []byte{'$', '-', '1', '\r', '\n'}
+	emptyArray = []byte{'*', '0', '\r', '\n'}
 )
 
 func intToString(val int64) string {
@@ -87,7 +87,7 @@ func SendBulks(w *bufio.Writer, vals [][]byte) error {
 func sendBulks(w *bufio.Writer, vals [][]byte) error {
 	var e error
 	if vals == nil {
-		_, e = w.Write(nilArray)
+		_, e = w.Write(emptyArray)
 		e = w.Flush()
 		return e
 	}
@@ -109,7 +109,7 @@ func sendBulks(w *bufio.Writer, vals [][]byte) error {
 func SendObjects(w *bufio.Writer, vals []interface{}) error {
 	var e error
 	if vals == nil {
-		_, e = w.Write(nilArray)
+		_, e = w.Write(emptyArray)
 		e = w.Flush()
 		return e
 	}
