@@ -78,7 +78,7 @@ func (w *Writer) WriteError(s string) error {
 
 func (w *Writer) WriteObjects(objs ...interface{}) error {
 	if objs == nil {
-		_, err := w.Write(nilArray)
+		_, err := w.Write(emptyArray)
 		return err
 	}
 
@@ -125,7 +125,7 @@ func (w *Writer) WriteObjects(objs ...interface{}) error {
 
 func (w *Writer) WriteBulks(bulks ...[]byte) error {
 	if bulks == nil {
-		_, err := w.Write(nilArray)
+		_, err := w.Write(emptyArray)
 		return err
 	}
 
@@ -144,7 +144,7 @@ func (w *Writer) WriteBulks(bulks ...[]byte) error {
 
 func (w *Writer) WriteBulkStrings(bulks []string) error {
 	if bulks == nil {
-		_, err := w.Write(nilArray)
+		_, err := w.Write(emptyArray)
 		return err
 	}
 
