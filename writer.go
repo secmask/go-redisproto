@@ -12,9 +12,9 @@ var (
 	dollar = []byte{'$'}
 	plus   = []byte{'+'}
 	subs   = []byte{'-'}
-	//newLine  = []byte{'\r', '\n'}
-	//nilBulk  = []byte{'$', '-', '1', '\r', '\n'}
-	//nilArray = []byte{'*', '-', '1', '\r', '\n'}
+	// newLine  = []byte{'\r', '\n'}
+	// nilBulk  = []byte{'$', '-', '1', '\r', '\n'}
+	// nilArray = []byte{'*', '-', '1', '\r', '\n'}
 )
 
 type Writer struct {
@@ -117,7 +117,7 @@ func (w *Writer) WriteObjects(objs ...interface{}) error {
 				return err
 			}
 		default:
-			return fmt.Errorf("Value not suppport %v", v)
+			return fmt.Errorf("value not suppport %v", v)
 		}
 	}
 	return nil
@@ -140,6 +140,18 @@ func (w *Writer) WriteBulks(bulks ...[]byte) error {
 		}
 	}
 	return nil
+}
+
+// WriteObjectsSlice works like WriteObjects, it useful when args is a slice that can be nil,
+// in that case WriteObjects(nil) will understand as response 1 element array (nil element)
+// see https://github.com/secmask/go-redisproto/issues/4 for details.
+func (w *Writer) WriteObjectsSlice(args []interface{}) error {
+	return w.WriteObjects(args...)
+}
+
+// WriteBulksSlice ...
+func (w *Writer) WriteBulksSlice(args [][]byte) error {
+	return w.WriteBulks(args...)
 }
 
 func (w *Writer) WriteBulkStrings(bulks []string) error {
