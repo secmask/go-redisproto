@@ -16,7 +16,6 @@ var (
 	LineTooLong     = errors.New("LineTooLong")
 
 	ReadBufferInitSize = 1 << 16
-	MaxNumArg          = 20
 	MaxBulkSize        = 1 << 16
 	MaxTelnetLine      = 1 << 10
 	spaceSlice         = []byte{' '}
@@ -57,6 +56,7 @@ type Parser struct {
 	buffer        []byte
 	parsePosition int
 	writeIndex    int
+	maxNumArg     int
 }
 
 func max(a, b int) int {
@@ -66,7 +66,11 @@ func max(a, b int) int {
 	return b
 }
 func NewParser(reader io.Reader) *Parser {
-	return &Parser{reader: reader, buffer: make([]byte, ReadBufferInitSize)}
+	return &Parser{reader: reader, buffer: make([]byte, ReadBufferInitSize), maxNumArg: 20}
+}
+
+func NewParserWithMaxArgCount(reader io.Reader, maxArgs int) *Parser {
+	return &Parser{reader: reader, buffer: make([]byte, ReadBufferInitSize), maxNumArg: maxArgs}
 }
 
 // ensure that we have enough space for writing 'req' byte
@@ -170,7 +174,7 @@ func (r *Parser) parseBinary() (*Command, error) {
 		return nil, r.discardNewLine() // null array
 	case numArg < -1:
 		return nil, InvalidNumArg
-	case numArg > MaxNumArg:
+	case numArg > r.maxNumArg:
 		return nil, InvalidNumArg
 	}
 	argv := make([][]byte, 0, numArg)
