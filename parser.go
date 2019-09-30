@@ -48,6 +48,8 @@ func (c *Command) ArgCount() int {
 	return len(c.argv)
 }
 
+// IsLast is true if this command is the last one in receive buffer, command handler should call writer.Flush()
+// after write response, helpful in process pipeline command.
 func (c *Command) IsLast() bool {
 	return c.last
 }
@@ -100,7 +102,7 @@ func (r *Parser) requireNBytes(num int) error {
 	return nil
 }
 func (r *Parser) readNumber() (int, error) {
-	var neg bool = false
+	var neg = false
 	err := r.requireNBytes(1)
 	if err != nil {
 		return 0, err
